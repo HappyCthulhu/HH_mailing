@@ -24,35 +24,46 @@ from main import fill_advanced_search_settings_page, unpack_info_file, unpack_di
 # TODO: еще раз поглядеть, как выглядит структуризация функций в тестировании и назначение драйвера
 # TODO: растянуть поле ввода сопроводительного вширь 
 # TODO: переделать дизайн, нормально прошарив grid и остальные две штуки
-## работа с классами в Tkinter
-## каким образом назначать порядок для grid?
 # TODO: почему драйвер не присваивается в scope функции?
 # TODO: придумать, каким образом присвоить драйвер. Для этого нужно как минимум вывести его из скоупа функции. Для этого нужно научиться получать значения из input
-# TODO: может стоит сделать отдельный файл для 'about_mailing'? А то передавать их аргументы каждый раз нет смысла
-# TODO: рассылка вакансий
 # TODO: кнопка "остановить процесс"
 
+
 class AddElement():
-    def
-    def create_label(self, text):
+    def __init__(self):
+        elem_count = 0
+        self.elem_count = elem_count
+
+    def counting(self):
+        self.elem_count += 1
+
+    # TODO: таки приделать декоратор
+    # @counting()
+    def create_default_label(self, text, pady=0, font_size=16, font_family='PT Sans', thickness='normal'):
         self.label = Label(frame, text=text, bg='#F3F5F4', justify='left')
-        self.label.config(font=('PT Sans', 16, kwargs))
-        self.label.grid(sticky=W, column=0, row=row)
+        self.label.config(font=(font_family, font_size, thickness))
+        self.label.grid(sticky=W, column=0, row=self.elem_count, pady=pady)
+        self.counting()
 
-def create_input(text):
-    test_var = StringVar(frame, text)
-    input_ = Entry(frame, highlightthickness=1, bg='white', width=40, textvariable=test_var,
-                   font=('Helvetica', 10))
-    return input_
-    # searchKeyInput.pack(pady=18)
+    def create_input(self, text):
+        string_for_input = StringVar(frame, text)
+        self.input = Entry(frame, highlightthickness=1, bg='white', width=40, textvariable=string_for_input,
+                           font=('Helvetica', 10))
+        self.input.grid(sticky=W, column=0, row=self.elem_count)
+        self.counting()
+        return self.input
 
+    def create_radio(self, button, tuple, number_of_set_items, font_family='Helvetica', font_size=14,
+                     font_thickness='normal'):
+        button.set(number_of_set_items)
 
-def create_radio(tuple, variable):
-    for text, value, row_count in tuple:
-        radio = Radiobutton(frame, text=text, variable=variable, bg='#F3F5F4', highlightthickness=0, value=value,
-                            justify='left')
-        radio.config(font=('Helvetica', 14, 'normal'))
-        radio.grid(sticky=W, column=0, row=row_count)
+        for text, value in tuple:
+            radio = Radiobutton(frame, text=text, variable=button, bg='#F3F5F4', highlightthickness=0,
+                                value=value,
+                                justify='left')
+            radio.config(font=(font_family, font_size, font_thickness))
+            radio.grid(sticky=W, column=0, row=self.elem_count)
+            self.counting()
 
 
 def create_label(text, row, *kwargs):
@@ -85,13 +96,6 @@ def raise_error_about_authorization():
     message = 'Сейчас вам необходимо авторизироваться. Эту процедуру нужно пройти один раз. В будущем авторизация будет проходить автоматически. Как только залогинитесь, нажмите "ok"'
     messagebox.showinfo(title='Введите данные на странице HH', message=message)
     root.update()
-
-
-# def check_if_info_been_changed(search_key, region, search_period, items_on_page, order):
-#     if search_key != search_key_from_file or region != region_from_file or search_period != search_period_from_file or items_on_page != items_on_page_from_file or order != order_from_file:
-#         return True
-#     else:
-#         return False
 
 
 # def new_func_for_btn(input_data):
@@ -244,78 +248,68 @@ frame = Frame(root, bg='#F3F5F4')
 # relwidth=1, relheight=1 на всю ширину и высоту, relx и rely - смещение. Все это в процентах
 frame.place(relwidth=1, relheight=1, relx=0.10, rely=0.05)
 
-label = Label(frame, text='Введите свои данные', bg='#F3F5F4', justify=LEFT)
-
-label.config(font=('PT Sans Caption', 16, 'bold'))
-
-label.grid(sticky=W, column=0, row=0, pady=28)
-
+a = AddElement()
 create_label('Ключевые слова', 1)
 
-searchKeyInput = create_input(search_key_from_file)
-searchKeyInput.grid(sticky=W, column=0, row=2)
+a.create_default_label('Введите свои данные', font_size=28, thickness='bold')
 
-create_label('Название вашего резюме', 3)
+a.create_default_label('Ключевые слова')
+searchKeyInput = a.create_input(search_key_from_file)
 
-resumeNameInput = create_input(resume_name_from_file)
-resumeNameInput.grid(sticky=W, column=0, row=4)
+a.create_default_label('Название вашего резюме')
 
-create_label('Регион', 5)
+resumeNameInput = a.create_input(resume_name_from_file)
 
-regionInput = create_input(region_from_file)
-regionInput.grid(sticky=W, column=0, row=6)
+a.create_default_label('Регион')
 
-create_label('Введите сопроводительное письмо', 7)
+regionInput = a.create_input(region_from_file)
 
-coveringLetterInput = create_input(covering_letter_from_file)
-coveringLetterInput.grid(sticky=W, column=0, row=8)
+a.create_default_label('Введите сопроводительное письмо')
 
-create_label('Сортировка', 9)
+coveringLetterInput = a.create_input(covering_letter_from_file)
+
+a.create_default_label('Сортировка')
 
 ORDER = [
-    ('По дате изменения', 'publication_time', 10),
-    ('По убыванию зарплат', 'salary_desc', 11),
-    ('По возрастанию зарплаты', 'salary_inc', 12),
-    ('По соответствию', 'relevance', 13),
+    ('По дате изменения', 'publication_time'),
+    ('По убыванию зарплат', 'salary_desc'),
+    ('По возрастанию зарплаты', 'salary_inc'),
+    ('По соответствию', 'relevance'),
 ]
 
 r_order = StringVar()
-r_order.set(order_from_file)
 
-create_radio(ORDER, r_order)
+a.create_radio(r_order, ORDER, order_from_file)
 
-create_label('Выводить', 14)
+a.create_default_label('Выводить')
 
 SEARCH_PERIOD = [
-    ('За всё  время', 0, 15),
-    ('За месяц', 30, 16),
-    ('За неделю', 7, 17),
-    ('За последние три дня', 3, 18),
-    ('За сутки', 1, 19),
+    ('За всё  время', 0),
+    ('За месяц', 30),
+    ('За неделю', 7),
+    ('За последние три дня', 3),
+    ('За сутки', 1),
 ]
 
 r_search_period = IntVar()
-r_search_period.set(search_period_from_file)
 
-create_radio(SEARCH_PERIOD, r_search_period)
+a.create_radio(r_search_period, SEARCH_PERIOD, search_period_from_file)
 
-create_label('Показать на странице', 20)
+a.create_default_label('Показать на странице')
 
 ITEMS_ON_PAGE = [
-    ('20 вакансий', 20, 21),
-    ('50 вакансий', 50, 22),
-    ('100 вакансий', 100, 23),
+    ('20 вакансий', 20),
+    ('50 вакансий', 50),
+    ('100 вакансий', 100),
 ]
 
 r_items_on_page = IntVar()
-r_items_on_page.set(items_on_page_from_file)
 
-create_radio(ITEMS_ON_PAGE, r_items_on_page)
+a.create_radio(r_items_on_page, ITEMS_ON_PAGE, items_on_page_from_file)
 
 btn = Button(frame, text='Начать рассылку', bg='#F7C87E', command=btn_click, justify=LEFT,
              border=0)
 btn.config(height=2, width=15)
-# btn.pack()
 btn.grid(sticky=W, column=0, row=24, pady=28)
 
 root.mainloop()
