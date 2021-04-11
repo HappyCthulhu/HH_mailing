@@ -256,7 +256,7 @@ root.option_add('*Dialog.msg.font', 'Helvetica 12')
 root['bg'] = '#F3F5F4'
 root.title('Рассылка HH-откликов')
 # Прозрачность окна
-root.wm_attributes('-alpha', 0.7)
+root.wm_attributes('-alpha', 1)
 root.geometry('300x851')
 root.resizable(width=True, height=True)
 
