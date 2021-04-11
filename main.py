@@ -19,6 +19,13 @@ from logging_dir.logging import my_exception_hook, set_logger
 from locators import AdvancedSearchLocators, VacancyPage, SearchPage, CommonLocators
 
 
+def check_driver_exist(fp):
+    if os.path.isfile(fp):
+        return True
+    else:
+        return False
+
+
 def first_json_dump(fp):
     first_json_dump_dict = {
         "count_of_responses": 0,
@@ -191,8 +198,7 @@ def check_element_exist(driver, xpath, *wait_time):
 
 
 def get_vacancy_id_and_link(element):
-    # TODO: говорит, мол, избыточный \
-    vacancy_id_list = re.findall('(?<=vacancy\/).+?(?=")', element)
+    vacancy_id_list = re.findall('(?<=vacancy/).+?(?=")', element)
     if vacancy_id_list:
         vacancy_id = vacancy_id_list[0]
         vacancy_link = f'https://spb.hh.ru/applicant/vacancy_response?vacancyId={vacancy_id}'
@@ -301,7 +307,6 @@ def process_vacancy_page(driver, link, vacancy_number, resume_name, fp_info_file
             # TODO: регулярки рекламу не находят, а мб должны
             logger.critical('Исчерпан лимит откликов за день')
             logging_final_results(number_of_responses, number_of_pages)
-            # TODO: проверить, как это чудо работает
             now = datetime.now()
             time_now = now.strftime("%Y-%m-%d, %H:%M:%S")
             dump_vacancies_data_in_file(fp_info_file, time_now)

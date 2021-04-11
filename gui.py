@@ -1,5 +1,7 @@
 import os
 import json
+from pathlib import Path
+from sys import platform
 import time
 import tkinter
 from tkinter import *
@@ -16,7 +18,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from locators import SearchPage
 from logging_dir.logging import my_exception_hook, set_logger
 from main import fill_advanced_search_settings_page, unpack_info_file, unpack_dict, send_cookies, check_authorization, \
-    check_element_exist, send_responses_on_page, click, logging_final_results
+    check_element_exist, send_responses_on_page, click, logging_final_results, check_driver_exist
 
 
 # TODO: че делать с хромдрайвером для винды и линукса?
@@ -117,6 +119,25 @@ def raise_error_about_authorization():
 #                                    'count_of_responses': count_of_responses_from_file, 'time': time_from_file}
 
 def btn_click():
+    error_message = 'В корневой папке не найдет ChromeDriver!\n' \
+                    'Если у вас Windows, файл хромдрайвера должен называться: "chromedriver.exe"\n' \
+                    'Если у вас Linux, файл хромдрайвера должена называться: "chromedriver"\n' \
+                    'О том, как установить chomedriver можно прочесть в README-файле проекта'
+
+    if platform == 'linux' or platform == 'linux2':
+        driver_path = DRIVER_PATH_LINUX
+    elif platform == 'win32':
+        driver_path = 'chromedriver.exe'
+    else:
+        messagebox.showerror(title='Система не определена', message='У вас винда или линукс?')
+        sys.exit()
+
+    if not check_driver_exist(driver_path):
+        # TODO: добавить в readme инструкцию по установке хромдрайвера
+
+        messagebox.showerror(title='Хромдрайвера нет в папке', message=error_message)
+        raise FileNotFoundError
+
     search_key_from_input = searchKeyInput.get()
     region_from_input = regionInput.get()
     resume_name_from_input = resumeNameInput.get()
@@ -132,7 +153,7 @@ def btn_click():
                f'Сортировка: {str(search_period_from_input)}\n' \
                f'Выводить: {str(order_from_input)}\n' \
                f'Показывать на странице: {str(items_on_page_from_input)}\n'
-    messagebox.showinfo(title='Название', message=info_str)
+    messagebox.showinfo(title='Проверьте информацию!', message=info_str)
     root.update()
 
     # if os.path.isfile(INFO_FILE) and os.path.getsize(INFO_FILE) and check_if_info_been_changed(search_key_from_input,
@@ -152,7 +173,7 @@ def btn_click():
 
     dump_in_my_file(input_dict, INFO_FILE)
 
-    driver = webdriver.Chrome('/home/valera/PycharmProjects/HH_auto_mailling/chromedriver')
+    driver = webdriver.Chrome(Path(driver_path).resolve())
 
     driver.get(AUTHORIZATION_PAGE_LINK)
 
@@ -183,9 +204,6 @@ def btn_click():
     # TODO: функция, которая берет общее количество страниц. В пизду пока. Если страниц меньше 6, кнопки с финальной страницей нет.
     # TODO: Настроить рассылку по заданному количеству откликов
     if check_element_exist(driver, SearchPage.next_page_button):
-        # TODO: удалить логгирование
-        logger.debug(type(SearchPage.next_page_button))
-        logger.debug(SearchPage.next_page_button)
         while WebDriverWait(driver, 5).until(EC.element_to_be_clickable((By.XPATH, SearchPage.next_page_button))):
             # тут должно располагаться все
             logger.debug(f'Перешли на страницу: {number_of_pages}')
@@ -212,6 +230,8 @@ dict_from_input = {}
 
 INFO_FILE = 'my_info.yml'
 COOKIES_FILE = 'cookies.json'
+DRIVER_PATH_WINDOWS = 'chromedriver.exe'
+DRIVER_PATH_LINUX = 'chromedriver'
 AUTHORIZATION_PAGE_LINK = 'https://spb.hh.ru/account/login?backurl=%2F'
 
 if os.path.isfile(INFO_FILE) and os.path.getsize(INFO_FILE):
