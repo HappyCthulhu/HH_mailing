@@ -180,6 +180,7 @@ def logging_final_results(number_of_responses, number_of_pages):
 
 def check_element_exist(driver, xpath, *wait_time):
     # TODO: проверить, норм ли это работает
+    # TODO: нихуя это нормально не работает
     if wait_time:
         wait_time = wait_time[0]
         try:
@@ -254,7 +255,7 @@ def dump_vacancies_with_extra_questions_in_file(link, fp):
     else:
         file_info = [link]
     with open(fp, 'w', encoding='utf8') as file:
-        yaml.dump(file_info, file, allow_unicode=True)
+        yaml.dump(file_info, file, allow_unicode=False)
 
 
 def process_vacancy_page(driver, link, vacancy_number, resume_name, fp_info_file, covering_letter_from_file,
@@ -300,17 +301,18 @@ def process_vacancy_page(driver, link, vacancy_number, resume_name, fp_info_file
         # TODO: мб сделать проверку на блокировку по кратности количества откликов?
         # TODO: сделать проверку на блокировку отдельной функцией
         # TODO: посмотреть, почему не добавил функцию проверки наличия элемента сюда
-        if (
-                vacancy_number == 30 or vacancy_number == 60 or vacancy_number == 90 or vacancy_number == 1) and not check_element_exist(
-            driver, VacancyPage.negotiations_limit_exceed_div, 5):
-            # TODO: какого хера передает кортеж, вместе числа??????
-            # TODO: регулярки рекламу не находят, а мб должны
-            logger.critical('Исчерпан лимит откликов за день')
-            logging_final_results(number_of_responses, number_of_pages)
-            now = datetime.now()
-            time_now = now.strftime("%Y-%m-%d, %H:%M:%S")
-            dump_vacancies_data_in_file(fp_info_file, time_now)
-            sys.exit()
+        # TODO: ПОФИКСИТЬ
+        # if (
+        #         vacancy_number == 30 or vacancy_number == 60 or vacancy_number == 90 or vacancy_number == 1) and not check_element_exist(
+        #     driver, VacancyPage.negotiations_limit_exceed_div, 5):
+        #     # TODO: какого хера передает кортеж, вместе числа??????
+        #     # TODO: регулярки рекламу не находят, а мб должны
+        #     logger.critical('Исчерпан лимит откликов за день')
+        #     logging_final_results(number_of_responses, number_of_pages)
+        #     now = datetime.now()
+        #     time_now = now.strftime("%Y-%m-%d, %H:%M:%S")
+        #     dump_vacancies_data_in_file(fp_info_file, time_now)
+        #     sys.exit()
 
         # except TimeoutException:
         #     pass

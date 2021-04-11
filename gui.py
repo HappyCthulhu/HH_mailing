@@ -91,7 +91,7 @@ def check_cookie_exist(fp):
 
 def dump_in_my_file(info, fp):
     with open(fp, 'w', encoding='utf8') as file:
-        yaml.dump(info, file, allow_unicode=True)
+        yaml.dump(info, file, allow_unicode=False)
 
 
 def raise_error_about_authorization():
