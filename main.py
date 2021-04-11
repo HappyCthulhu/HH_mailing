@@ -1,6 +1,7 @@
 import json
 import re
 import sys
+import os
 from datetime import datetime
 
 import yaml
@@ -16,6 +17,16 @@ from selenium.webdriver.support.wait import WebDriverWait
 from logging_dir.logging import my_exception_hook, set_logger
 
 from locators import AdvancedSearchLocators, VacancyPage, SearchPage, CommonLocators
+
+
+def first_json_dump(fp):
+    first_json_dump_dict = {
+        "count_of_responses": 0,
+        "last_block_time": "2000-01-01, 00:00:00",
+        "last_mail_time": "2000-01-01  00:00:00.000000"
+    }
+    with open(fp, 'w', encoding='utf8') as file:
+        json.dump(first_json_dump_dict, file, ensure_ascii=False)
 
 
 def check_authorization(driver):
@@ -57,9 +68,7 @@ def move_to_elem_by_xpath(driver, xpath):
 def unpack_about_mailing_file(fp):
     with open(fp, 'r') as file:
         file_dict = json.load(file)
-    # count_of_responses = file_dict['count_of_responses']
-    # last_block_time = file_dict['last_block_time']
-    # last_mail_time = file_dict['last_mail_time']
+
     return file_dict
 
 
@@ -106,7 +115,6 @@ def fill_advanced_search_settings_page(driver, search_key, region, search_period
     #     send_keys(LoginPage.login_without_pass, login)
     #     send_keys(LoginPage.password, password)
     #     time.sleep(10)
-    # TODO: проверить пустоту файлов куки
     # click(LoginPage.enter_button)
     #     click(LoginPage.enter_button)
 
@@ -158,7 +166,6 @@ def fill_advanced_search_settings_page(driver, search_key, region, search_period
 
 
 def logging_final_results(number_of_responses, number_of_pages):
-    # TODO: количество откликов выводит неправильное. 0 выводит
     logger.info('Работа успешно выполнена\n'
                 f'Количество откликов: {number_of_responses}\n'
                 f'Количество обработанных страниц: {number_of_pages}')
@@ -175,6 +182,8 @@ def check_element_exist(driver, xpath, *wait_time):
             return False
     else:
         try:
+            # TODO: удалить этот debug
+            logger.debug(xpath)
             find_element_by_xpath(driver, xpath)
             return True
         except NoSuchElementException:
@@ -182,6 +191,7 @@ def check_element_exist(driver, xpath, *wait_time):
 
 
 def get_vacancy_id_and_link(element):
+    # TODO: говорит, мол, избыточный \
     vacancy_id_list = re.findall('(?<=vacancy\/).+?(?=")', element)
     if vacancy_id_list:
         vacancy_id = vacancy_id_list[0]
@@ -217,11 +227,7 @@ def check_if_there_one_day_passed_after_block(previous_time):
 
 
 def dump_vacancies_data_in_file(fp, *block_time):
-    # TODO: прихуярить какую-то переменную, при которой он будет время последней блокировки откликов фиксировать
-
     file_dict = unpack_about_mailing_file(fp)
-
-
 
     if block_time:
         file_dict['last_block_time'] = block_time[0]
@@ -233,9 +239,17 @@ def dump_vacancies_data_in_file(fp, *block_time):
 
 
 # TODO: Настроить рассылку по заданному количеству откликов
-# TODO: Наполнять отдельный файлик вакансиями с вакансиями, требующими ответов на доп. вопросы
 # TODO: разбить на большее количество функций
-# TODO: залить уже в Git блять
+def dump_vacancies_with_extra_questions_in_file(link, fp):
+    if os.path.isfile(VACANCIES_WITH_EXTRA_QUESTIONS):
+        with open(fp, 'r', encoding='utf-8') as file:
+            file_info = yaml.load(file, Loader=yaml.FullLoader)
+        file_info.append(link)
+    else:
+        file_info = [link]
+    with open(fp, 'w', encoding='utf-8') as file:
+        yaml.dump(file_info, file, allow_unicode=True)
+
 
 def process_vacancy_page(driver, link, vacancy_number, resume_name, fp_info_file, covering_letter_from_file,
                          number_of_responses, number_of_pages):
@@ -252,9 +266,11 @@ def process_vacancy_page(driver, link, vacancy_number, resume_name, fp_info_file
 
     if check_element_exist(driver, VacancyPage.vacancy_with_questionnaire):
         logger.info('Вакансия требуется дополнительной хуйни')
-
+        # проверить работу
+        dump_vacancies_with_extra_questions_in_file(link, VACANCIES_WITH_EXTRA_QUESTIONS)
     elif check_element_exist(driver, VacancyPage.vacancy_with_extra_questions):
         logger.info('Вакансия требует ответов на дополнительные вопросы')
+        dump_vacancies_with_extra_questions_in_file(link, VACANCIES_WITH_EXTRA_QUESTIONS)
 
     else:
         # list_of_resumes = driver.find_elements_by_xpath(VacancyPage.list_of_resumes)
@@ -265,9 +281,8 @@ def process_vacancy_page(driver, link, vacancy_number, resume_name, fp_info_file
         v.resume_name = resume_name
         resume_name_xpath = v.resume_name
         if not check_element_exist(driver, resume_name_xpath):
-                logger.critical('Не нашел нужного резюме. Проверьте, правильно ли написали название вашего резюме\n'
-                                f'Введенное вами название: {resume_name}')
-        # TODO: дописать говно
+            logger.critical('Не нашел нужного резюме. Проверьте, правильно ли написали название вашего резюме\n'
+                            f'Введенное вами название: {resume_name}')
         click(driver, resume_name_xpath)
 
         if check_element_exist(driver, VacancyPage.covering_letter_button):
@@ -281,7 +296,7 @@ def process_vacancy_page(driver, link, vacancy_number, resume_name, fp_info_file
         # TODO: посмотреть, почему не добавил функцию проверки наличия элемента сюда
         if (
                 vacancy_number == 30 or vacancy_number == 60 or vacancy_number == 90 or vacancy_number == 1) and not check_element_exist(
-            VacancyPage.negotiations_limit_exceed_div, 5):
+            driver, VacancyPage.negotiations_limit_exceed_div, 5):
             # TODO: какого хера передает кортеж, вместе числа??????
             # TODO: регулярки рекламу не находят, а мб должны
             logger.critical('Исчерпан лимит откликов за день')
@@ -324,9 +339,14 @@ def send_responses_on_page(driver, resume_name, fp_info_file, covering_letter_fr
 
 
 ABOUT_MAILING_FILE = 'about_mailing.json'
+
+VACANCIES_WITH_EXTRA_QUESTIONS = 'vacancies_with_extra_questions.yml'
+
+if not os.path.isfile(ABOUT_MAILING_FILE):
+    first_json_dump(ABOUT_MAILING_FILE)
+
 ABOUT_MAILING_FILE_DICT = unpack_about_mailing_file(ABOUT_MAILING_FILE)
 LAST_BLOCK_TIME = ABOUT_MAILING_FILE_DICT['last_block_time']
-
 sys.excepthook = my_exception_hook
 set_logger()
 

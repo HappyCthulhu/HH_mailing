@@ -18,6 +18,8 @@ from logging_dir.logging import my_exception_hook, set_logger
 from main import fill_advanced_search_settings_page, unpack_info_file, unpack_dict, send_cookies, check_authorization, \
     check_element_exist, send_responses_on_page, click, logging_final_results
 
+
+# TODO: че делать с хромдрайвером для винды и линукса?
 # TODO: логгирование в окошки уведомлений превратить
 # TODO: еще раз поглядеть, как выглядит структуризация функций в тестировании и назначение драйвера
 # TODO: растянуть поле ввода сопроводительного вширь 
@@ -30,6 +32,12 @@ from main import fill_advanced_search_settings_page, unpack_info_file, unpack_di
 # TODO: рассылка вакансий
 # TODO: кнопка "остановить процесс"
 
+class AddElement():
+    def
+    def create_label(self, text):
+        self.label = Label(frame, text=text, bg='#F3F5F4', justify='left')
+        self.label.config(font=('PT Sans', 16, kwargs))
+        self.label.grid(sticky=W, column=0, row=row)
 
 def create_input(text):
     test_var = StringVar(frame, text)
@@ -79,11 +87,11 @@ def raise_error_about_authorization():
     root.update()
 
 
-def check_if_info_been_changed(search_key, region, search_period, items_on_page, order):
-    if search_key != search_key_from_file or region != region_from_file or search_period != search_period_from_file or items_on_page != items_on_page_from_file or order != order_from_file:
-        return True
-    else:
-        return False
+# def check_if_info_been_changed(search_key, region, search_period, items_on_page, order):
+#     if search_key != search_key_from_file or region != region_from_file or search_period != search_period_from_file or items_on_page != items_on_page_from_file or order != order_from_file:
+#         return True
+#     else:
+#         return False
 
 
 # def new_func_for_btn(input_data):
@@ -123,21 +131,22 @@ def btn_click():
     messagebox.showinfo(title='Название', message=info_str)
     root.update()
 
-    if os.path.isfile(INFO_FILE) and os.path.getsize(INFO_FILE) and check_if_info_been_changed(search_key_from_input,
-                                                                                               region_from_input,
-                                                                                               search_period_from_input,
-                                                                                               items_on_page_from_input,
-                                                                                               order_from_input):
-        input_dict = {
-            'search_key': search_key_from_input,
-            'resume_name': resume_name_from_input,
-            'region': region_from_input,
-            'search_period': search_period_from_input,
-            'items_on_page': items_on_page_from_input,
-            'order': order_from_input,
-            'covering_letter': covering_letter_from_input,
-        }
-        dump_in_my_file(input_dict, INFO_FILE)
+    # if os.path.isfile(INFO_FILE) and os.path.getsize(INFO_FILE) and check_if_info_been_changed(search_key_from_input,
+    #                                                                                            region_from_input,
+    #                                                                                            search_period_from_input,
+    #                                                                                            items_on_page_from_input,
+    #                                                                                            order_from_input):
+    input_dict = {
+        'search_key': search_key_from_input,
+        'resume_name': resume_name_from_input,
+        'region': region_from_input,
+        'search_period': search_period_from_input,
+        'items_on_page': items_on_page_from_input,
+        'order': order_from_input,
+        'covering_letter': covering_letter_from_input,
+    }
+
+    dump_in_my_file(input_dict, INFO_FILE)
 
     driver = webdriver.Chrome('/home/valera/PycharmProjects/HH_auto_mailling/chromedriver')
 
