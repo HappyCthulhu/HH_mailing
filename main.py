@@ -33,7 +33,7 @@ def first_json_dump(fp):
         "last_mail_time": "2000-01-01  00:00:00.000000"
     }
     with open(fp, 'w', encoding='utf8') as file:
-        json.dump(first_json_dump_dict, file, ensure_ascii=False)
+        json.dump(first_json_dump_dict, file, ensure_ascii=False, indent=4)
 
 
 def check_authorization(driver):
@@ -81,7 +81,7 @@ def unpack_about_mailing_file(fp):
 
 def dump_about_mailing_in_file(fp, dict):
     with open(fp, 'w', encoding='utf8') as file:
-        json.dump(dict, file, ensure_ascii=False)
+        json.dump(dict, file, ensure_ascii=False, indent=4)
 
 
 def unpack_dict(dict):
@@ -253,7 +253,7 @@ def dump_vacancies_with_extra_questions_in_file(link, fp):
         file_info.append(link)
     else:
         file_info = [link]
-    with open(fp, 'w', encoding='utf-8') as file:
+    with open(fp, 'w', encoding='utf8') as file:
         yaml.dump(file_info, file, allow_unicode=True)
 
 

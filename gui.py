@@ -79,7 +79,7 @@ def dump_cookies(driver, fp):
     # TODO: создать переменную с куки-файлом
     # TODO: проверку авторизации сделать
     with open(fp, 'w') as cookie_file:
-        json.dump(cookies, cookie_file)
+        json.dump(cookies, cookie_file, indent=6)
 
 
 def check_cookie_exist(fp):
