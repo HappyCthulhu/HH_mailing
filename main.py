@@ -172,17 +172,18 @@ def fill_advanced_search_settings_page(driver, search_key, region, search_period
     # TODO: понять, почему вакансий больше 100
 
 
-def logging_final_results(number_of_responses, number_of_pages):
+def logging_final_results(number_of_responses, number_of_pages, message=None):
+    if message:
+        logger.info(message)
     logger.info('Работа успешно выполнена\n'
                 f'Количество откликов: {number_of_responses}\n'
                 f'Количество обработанных страниц: {number_of_pages}')
 
 
-def check_element_exist(driver, xpath, *wait_time):
+def check_element_exist(driver, xpath, wait_time=None):
     # TODO: проверить, норм ли это работает
     # TODO: нихуя это нормально не работает
     if wait_time:
-        wait_time = wait_time[0]
         try:
             WebDriverWait(driver, wait_time).until(EC.presence_of_element_located((By.XPATH, xpath)))
             return True
@@ -190,8 +191,6 @@ def check_element_exist(driver, xpath, *wait_time):
             return False
     else:
         try:
-            # TODO: удалить этот debug
-            logger.debug(xpath)
             find_element_by_xpath(driver, xpath)
             return True
         except NoSuchElementException:
@@ -255,7 +254,7 @@ def dump_vacancies_with_extra_questions_in_file(link, fp):
     else:
         file_info = [link]
     with open(fp, 'w', encoding='utf8') as file:
-        yaml.dump(file_info, file, allow_unicode=False)
+        yaml.dump(file_info, file, encoding=None, allow_unicode=True)
 
 
 def process_vacancy_page(driver, link, vacancy_number, resume_name, fp_info_file, covering_letter_from_file,
@@ -280,11 +279,7 @@ def process_vacancy_page(driver, link, vacancy_number, resume_name, fp_info_file
         dump_vacancies_with_extra_questions_in_file(link, VACANCIES_WITH_EXTRA_QUESTIONS)
 
     else:
-        # list_of_resumes = driver.find_elements_by_xpath(VacancyPage.list_of_resumes)
-        # my_resume_button = choose_resume(resume_name, list_of_resumes)
-        # TODO: удалить логгирование
-        # logger.debug(my_resume_button)
-        # delete_this = driver.find_element(By.XPATH, my_resume_button)
+
         v.resume_name = resume_name
         resume_name_xpath = v.resume_name
         if not check_element_exist(driver, resume_name_xpath):
@@ -300,19 +295,14 @@ def process_vacancy_page(driver, link, vacancy_number, resume_name, fp_info_file
         dump_vacancies_data_in_file(ABOUT_MAILING_FILE)
         # TODO: мб сделать проверку на блокировку по кратности количества откликов?
         # TODO: сделать проверку на блокировку отдельной функцией
-        # TODO: посмотреть, почему не добавил функцию проверки наличия элемента сюда
-        # TODO: ПОФИКСИТЬ
-        # if (
-        #         vacancy_number == 30 or vacancy_number == 60 or vacancy_number == 90 or vacancy_number == 1) and not check_element_exist(
-        #     driver, VacancyPage.negotiations_limit_exceed_div, 5):
-        #     # TODO: какого хера передает кортеж, вместе числа??????
-        #     # TODO: регулярки рекламу не находят, а мб должны
-        #     logger.critical('Исчерпан лимит откликов за день')
-        #     logging_final_results(number_of_responses, number_of_pages)
-        #     now = datetime.now()
-        #     time_now = now.strftime("%Y-%m-%d, %H:%M:%S")
-        #     dump_vacancies_data_in_file(fp_info_file, time_now)
-        #     sys.exit()
+        if vacancy_number % 10 == 0 and check_element_exist(
+                driver, VacancyPage.negotiations_limit_exceed_div, 5):
+            # TODO: регулярки рекламу не находят, а мб должны
+            logging_final_results(number_of_responses, number_of_pages, message='Исчерпан лимит откликов за день')
+            now = datetime.now()
+            time_now = now.strftime("%Y-%m-%d, %H:%M:%S")
+            dump_vacancies_data_in_file(fp_info_file, time_now)
+            sys.exit()
 
         # except TimeoutException:
         #     pass

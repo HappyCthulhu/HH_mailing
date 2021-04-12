@@ -20,7 +20,7 @@ from logging_dir.logging import my_exception_hook, set_logger
 from main import fill_advanced_search_settings_page, unpack_info_file, unpack_dict, send_cookies, check_authorization, \
     check_element_exist, send_responses_on_page, click, logging_final_results, check_driver_exist
 
-
+# TODO: encoding yaml need to fix
 # TODO: че делать с хромдрайвером для винды и линукса?
 # TODO: логгирование в окошки уведомлений превратить
 # TODO: еще раз поглядеть, как выглядит структуризация функций в тестировании и назначение драйвера
@@ -91,7 +91,7 @@ def check_cookie_exist(fp):
 
 def dump_in_my_file(info, fp):
     with open(fp, 'w', encoding='utf8') as file:
-        yaml.dump(info, file, allow_unicode=False)
+        yaml.dump(info, file, allow_unicode=True, encoding=None)
 
 
 def raise_error_about_authorization():
