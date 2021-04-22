@@ -1,7 +1,7 @@
 import json
+import os
 import re
 import sys
-import os
 from datetime import datetime
 
 import yaml
@@ -14,9 +14,14 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 
+from locators import AdvancedSearchLocators, VacancyPage, SearchPage, CommonLocators
 from logging_dir.logging import my_exception_hook, set_logger
 
-from locators import AdvancedSearchLocators, VacancyPage, SearchPage, CommonLocators
+
+def unpack_vacancies_with_extra_questions(fp):
+    with open(fp, 'r') as file:
+        file_info = yaml.load(file, Loader=yaml.FullLoader)
+        return file_info
 
 
 def check_driver_exist(fp):
@@ -79,19 +84,19 @@ def unpack_about_mailing_file(fp):
     return file_dict
 
 
-def dump_about_mailing_in_file(fp, dict):
+def dump_about_mailing_in_file(fp, dict_):
     with open(fp, 'w', encoding='utf8') as file:
-        json.dump(dict, file, ensure_ascii=False, indent=4)
+        json.dump(dict_, file, ensure_ascii=False, indent=4)
 
 
-def unpack_dict(dict):
-    search_key = dict.get('search_key')
-    region = dict.get('region')
-    search_period = dict.get('search_period')
-    resume_name = dict.get('resume_name')
-    items_on_page = dict.get('items_on_page')
-    order = dict.get('order')
-    covering_letter = dict.get('covering_letter')
+def unpack_dict(dict_):
+    search_key = dict_.get('search_key')
+    region = dict_.get('region')
+    search_period = dict_.get('search_period')
+    resume_name = dict_.get('resume_name')
+    items_on_page = dict_.get('items_on_page')
+    order = dict_.get('order')
+    covering_letter = dict_.get('covering_letter')
 
     return search_key, resume_name, region, search_period, items_on_page, order, covering_letter
 
@@ -114,20 +119,6 @@ def fill_advanced_search_settings_page(driver, search_key, region, search_period
         respond = input()
         if respond == 'n':
             sys.exit()
-
-    driver.get('https://spb.hh.ru/account/login?backurl=%2F')
-
-    # if not find_element_by_xpath('//span[@data-qa="expand-login-by-password"]'):
-    #
-    #     send_keys(LoginPage.login_without_pass, login)
-    #     send_keys(LoginPage.password, password)
-    #     time.sleep(10)
-    # click(LoginPage.enter_button)
-    #     click(LoginPage.enter_button)
-
-    # else:
-
-    # set Advanced Search
 
     driver.get('https://spb.hh.ru/search/vacancy/advanced')
 
@@ -219,8 +210,6 @@ def get_vacancy_id_and_link(element):
 #     logger.critical('Не нашел нужного резюме. Проверьте, правильно ли написали название вашего резюме\n'
 #                     f'Введенное вами название: {my_resume_name}')
 
-
-# TODO: сделать функцию, которая высчитывает разницу во времени с последнего блокировки
 def check_if_there_one_day_passed_after_block(previous_time):
     # TODO: найти способ красиво записывать это без tuple
     now = datetime.now()
@@ -233,7 +222,7 @@ def check_if_there_one_day_passed_after_block(previous_time):
 
 
 def dump_vacancies_data_in_file(fp, *block_time):
-    file_dict = unpack_about_mailing_file(fp)
+    file_dict = unpack_about_mailing_file(ABOUT_MAILING_FILE)
 
     if block_time:
         file_dict['last_block_time'] = block_time[0]
@@ -247,7 +236,7 @@ def dump_vacancies_data_in_file(fp, *block_time):
 # TODO: Настроить рассылку по заданному количеству откликов
 # TODO: разбить на большее количество функций
 def dump_vacancies_with_extra_questions_in_file(link, fp):
-    if os.path.isfile(VACANCIES_WITH_EXTRA_QUESTIONS):
+    if os.path.isfile(fp):
         with open(fp, 'r', encoding='utf-8') as file:
             file_info = yaml.load(file, Loader=yaml.FullLoader)
         file_info.append(link)
@@ -273,10 +262,10 @@ def process_vacancy_page(driver, link, vacancy_number, resume_name, fp_info_file
     if check_element_exist(driver, VacancyPage.vacancy_with_questionnaire):
         logger.info('Вакансия требуется дополнительной хуйни')
         # проверить работу
-        dump_vacancies_with_extra_questions_in_file(link, VACANCIES_WITH_EXTRA_QUESTIONS)
+        dump_vacancies_with_extra_questions_in_file(link, VACANCIES_WITH_EXTRA_QUESTIONS_FILE)
     elif check_element_exist(driver, VacancyPage.vacancy_with_extra_questions):
         logger.info('Вакансия требует ответов на дополнительные вопросы')
-        dump_vacancies_with_extra_questions_in_file(link, VACANCIES_WITH_EXTRA_QUESTIONS)
+        dump_vacancies_with_extra_questions_in_file(link, VACANCIES_WITH_EXTRA_QUESTIONS_FILE)
 
     else:
 
@@ -296,7 +285,7 @@ def process_vacancy_page(driver, link, vacancy_number, resume_name, fp_info_file
         # TODO: мб сделать проверку на блокировку по кратности количества откликов?
         # TODO: сделать проверку на блокировку отдельной функцией
         if vacancy_number % 10 == 0 and check_element_exist(
-                driver, VacancyPage.negotiations_limit_exceed_div, 5):
+                driver, VacancyPage.negotiations_limit_exceed_div, 3):
             # TODO: регулярки рекламу не находят, а мб должны
             logging_final_results(number_of_responses, number_of_pages, message='Исчерпан лимит откликов за день')
             now = datetime.now()
@@ -315,7 +304,6 @@ def process_vacancy_page(driver, link, vacancy_number, resume_name, fp_info_file
 def send_responses_on_page(driver, resume_name, fp_info_file, covering_letter_from_file, number_of_responses,
                            number_of_pages):
     list_of_vacancies = driver.find_elements_by_xpath(SearchPage.list_of_vacancies)
-
     vacancy_number = 0
 
     for element in list_of_vacancies:
@@ -323,21 +311,32 @@ def send_responses_on_page(driver, resume_name, fp_info_file, covering_letter_fr
         element_html = element.get_attribute('innerHTML')
         vacancy_number += 1
 
-        if 'class="search-resume-item-label search-resume-item-label_responded"' in element_html or 'class="search-resume-item-label search-resume-item-label_invited"' in element_html or 'class="search-resume-item-label search-resume-item-label_discard"' in element_html:
+        if 'class="search-resume-item-label search-resume-item-label_responded"' in element_html or \
+                'class="search-resume-item-label search-resume-item-label_invited"' in element_html or 'class="search-resume-item-label search-resume-item-label_discard"' in element_html:
             continue
 
         vacancy_id, vacancy_link = get_vacancy_id_and_link(element_html)
-        if not vacancy_id:
+        # TODO: удостовериться, что вакансии с доп. вопросами не проходят if
+        # if vacancy_link in VACANCIES_WITH_EXTRA_QUESTIONS:
+        #     logger.info('Отловил ссылку на вакансию с доп вопросами по ссылке')
+        # if vacancy_id in VACANCIES_WITH_EXTRA_QUESTIONS:
+        #     logger.info('Отловил ссылку на вакансию с доп вопросами по id')
+        if not vacancy_id or vacancy_link in VACANCIES_WITH_EXTRA_QUESTIONS:
             continue
-        logger.debug(f'{vacancy_number}/{len(list_of_vacancies)}: {vacancy_link}')
 
+        logger.debug(f'{vacancy_number}/{len(list_of_vacancies)}: {vacancy_link}')
         process_vacancy_page(driver, vacancy_link, vacancy_number, resume_name, fp_info_file, covering_letter_from_file,
                              number_of_responses, number_of_pages)
 
 
 ABOUT_MAILING_FILE = 'about_mailing.json'
+VACANCIES_WITH_EXTRA_QUESTIONS_FILE = 'vacancies_with_extra_questions.yml'
 
-VACANCIES_WITH_EXTRA_QUESTIONS = 'vacancies_with_extra_questions.yml'
+# TODO: где берем линк на вакансию?
+if os.path.isfile(VACANCIES_WITH_EXTRA_QUESTIONS_FILE):
+    VACANCIES_WITH_EXTRA_QUESTIONS = unpack_vacancies_with_extra_questions(VACANCIES_WITH_EXTRA_QUESTIONS_FILE)
+else:
+    VACANCIES_WITH_EXTRA_QUESTIONS = []
 
 if not os.path.isfile(ABOUT_MAILING_FILE):
     first_json_dump(ABOUT_MAILING_FILE)

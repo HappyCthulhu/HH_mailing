@@ -1,26 +1,34 @@
-import os
 import json
-from pathlib import Path
-from sys import platform
+import os
 import time
 import tkinter
+from pathlib import Path
+from sys import platform
 from tkinter import *
 from tkinter import messagebox
 
 import yaml
 from loguru import logger
-
 from selenium import webdriver
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.wait import WebDriverWait
 
 from locators import SearchPage
 from logging_dir.logging import my_exception_hook, set_logger
 from main import fill_advanced_search_settings_page, unpack_info_file, unpack_dict, send_cookies, check_authorization, \
     check_element_exist, send_responses_on_page, click, logging_final_results, check_driver_exist
 
-# TODO: encoding yaml need to fix
+
+# TODO: Решить трабл с кучей переменных передаваемых в функцию. Словарь передавать
+# TODO: vim-шорткат, чтоб сделать слово в верхнем регистре
+# TODO: функция для распаковки нескольких файлов (my_info, vacancies_with_extra_questions и проч.)
+# TODO: прошарить шорткат для закрытия вкладки
+# TODO: написать тесты к проге
+## пущай прога запускает проект без json и  yaml-файлов
+## пущай прога проверить переход на другую страницу после блокировки
+# TODO: когда натыкается на вторую страницу, ловит TimeoutException, 
+# TODO: "Работа выполнена успешно" уведомлением сделать
 # TODO: че делать с хромдрайвером для винды и линукса?
 # TODO: логгирование в окошки уведомлений превратить
 # TODO: еще раз поглядеть, как выглядит структуризация функций в тестировании и назначение драйвера
@@ -66,6 +74,12 @@ class AddElement():
             radio.config(font=(font_family, font_size, font_thickness))
             radio.grid(sticky=W, column=0, row=self.elem_count)
             self.counting()
+
+
+def unpack_vacancies_with_extra_questions(fp):
+    with open(fp, 'r') as file:
+        file_info = yaml.load(file, Loader=yaml.FullLoader)
+        return file_info
 
 
 def create_label(text, row, *kwargs):
@@ -156,11 +170,6 @@ def btn_click():
     messagebox.showinfo(title='Проверьте информацию!', message=info_str)
     root.update()
 
-    # if os.path.isfile(INFO_FILE) and os.path.getsize(INFO_FILE) and check_if_info_been_changed(search_key_from_input,
-    #                                                                                            region_from_input,
-    #                                                                                            search_period_from_input,
-    #                                                                                            items_on_page_from_input,
-    #                                                                                            order_from_input):
     input_dict = {
         'search_key': search_key_from_input,
         'resume_name': resume_name_from_input,
@@ -257,7 +266,7 @@ root['bg'] = '#F3F5F4'
 root.title('Рассылка HH-откликов')
 # Прозрачность окна
 root.wm_attributes('-alpha', 1)
-root.geometry('300x851')
+root.geometry('600x851')
 root.resizable(width=True, height=True)
 
 # холст для вывода графич. примитивов. Не явл. обязательным
