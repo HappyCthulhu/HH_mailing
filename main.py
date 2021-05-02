@@ -189,7 +189,7 @@ def check_element_exist(driver, xpath, wait_time=None):
 
 
 def get_vacancy_id_and_link(element):
-    vacancy_id_list = re.findall('(?<=vacancy/).+?(?=")', element)
+    vacancy_id_list = re.findall('(?<=vacancy\/).+?(?=\D)', element)
     if vacancy_id_list:
         vacancy_id = vacancy_id_list[0]
         vacancy_link = f'https://spb.hh.ru/applicant/vacancy_response?vacancyId={vacancy_id}'
