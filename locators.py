@@ -41,7 +41,7 @@ class VacancyPage:
     list_of_resumes = '//span[@class="bloko-radio__text"]'
     covering_letter_button = '//span[@class="bloko-link-switch"]'
     covering_letter_input = '//textarea[@data-qa="vacancy-response-popup-form-letter-input"]'
-    respond_button = '//button[@class="bloko-button bloko-button_primary"]'
+    respond_button = '//button[@class="bloko-button bloko-button_kind-primary"]'
     vacancy_with_questionnaire = '//h2[@class="vacancy-response-popup-title"]'
     vacancy_with_extra_questions = '//p[@data-qa="employer-asking-for-test"]'
     send_request_header = '//h1[@data-qa="bloko-header-1"]'

@@ -140,17 +140,22 @@ def btn_click():
 
     if platform == 'linux' or platform == 'linux2':
         driver_path = DRIVER_PATH_LINUX
+
+        # TODO: вспомнить, как добавлять в PATH chromedriver и сделать вариант на основе этого
+        # driver_path = os.environ.get('chromedriver')
+        # if driver_path:
+
     elif platform == 'win32':
         driver_path = 'chromedriver.exe'
     else:
-        messagebox.showerror(title='Система не определена', message='У вас винда или линукс?')
-        sys.exit()
+        # if not check_driver_exist(driver_path):
+            # TODO: добавить в readme инструкцию по установке хромдрайвера
 
-    if not check_driver_exist(driver_path):
-        # TODO: добавить в readme инструкцию по установке хромдрайвера
+            messagebox.showerror(title='Хромдрайвера нет в папке', message=error_message)
+            raise FileNotFoundError
+        # messagebox.showerror(title='Система не определена', message='У вас винда или линукс?')
+        # sys.exit()
 
-        messagebox.showerror(title='Хромдрайвера нет в папке', message=error_message)
-        raise FileNotFoundError
 
     search_key_from_input = searchKeyInput.get()
     region_from_input = regionInput.get()

@@ -257,7 +257,8 @@ def process_vacancy_page(driver, link, vacancy_number, resume_name, fp_info_file
 
     driver.get(link)
 
-    WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, VacancyPage.send_request_header)))
+    # TODO: не находит элемент чета... Пока что закомментирую
+    # WebDriverWait(driver, 2).until(EC.presence_of_element_located((By.XPATH, VacancyPage.send_request_header)))
 
     if check_element_exist(driver, VacancyPage.vacancy_with_questionnaire):
         logger.info('Вакансия требуется дополнительной хуйни')
