@@ -1,5 +1,5 @@
 class CommonLocators:
-    account_icon = '//span[@class="supernova-icon supernova-icon_profile HH-Supernova-Menu-ArrowAnchor"]'
+    account_icon = '//span[@class="supernova-icon supernova-icon_profile"]'
 
 class LoginPage:
     login = '//div/input[@name="username"]'
@@ -25,7 +25,12 @@ class AdvancedSearchLocators:
     keywords = '//input[@id="advancedsearchmainfield"]'
     region = '//input[@class="bloko-input                                         Bloko-CompositeSelection-Suggest                                         jsxComponents-Hint-Input"]'
     search_button = '//input[@id="submit-bottom"]'
+
     list_of_places = '//span[@class="Bloko-CompositeSelection-TagList"]/span[contains(@data-qa, "bloko-tag")]/span[@class="bloko-icon-dynamic"]'
+    # label_full_time_employment = '//label[@data-qa="control-vacancysearch__employment-item control-vacancysearch__employment-item_full"]'
+    # label_part_time_employment = '//label[@data-qa="control-vacancysearch__employment-item control-vacancysearch__employment-item_part"]'
+    # label_part_time_project = '//label[@data-qa="control-vacancysearch__employment-item control-vacancysearch__employment-item_project"]'
+
 
 class SearchPage:
     next_page_button = '//a[@data-qa="pager-next"]'
@@ -39,10 +44,11 @@ class VacancyPage:
         self.__dict__[items] = value
 
     list_of_resumes = '//span[@class="bloko-radio__text"]'
-    covering_letter_button = '//span[@class="bloko-link-switch"]'
+    covering_letter_button = '//button[@data-qa="vacancy-response-letter-toggle"]'
     covering_letter_input = '//textarea[@data-qa="vacancy-response-popup-form-letter-input"]'
     respond_button = '//button[@class="bloko-button bloko-button_kind-primary"]'
     vacancy_with_questionnaire = '//h2[@class="vacancy-response-popup-title"]'
     vacancy_with_extra_questions = '//p[@data-qa="employer-asking-for-test"]'
     send_request_header = '//h1[@data-qa="bloko-header-1"]'
     negotiations_limit_exceed_div = '//div[@data-qa-popup-error-code="negotiations-limit-exceeded"]'
+    vacancy_with_direct_response = '//h2[@data-qa="bloko-header-2"]'
