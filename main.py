@@ -97,8 +97,9 @@ def unpack_dict(dict_):
     items_on_page = dict_.get('items_on_page')
     order = dict_.get('order')
     covering_letter = dict_.get('covering_letter')
+    employment_type = dict_.get('employment_from_input')
 
-    return search_key, resume_name, region, search_period, items_on_page, order, covering_letter
+    return search_key, resume_name, region, search_period, items_on_page, order, covering_letter, employment_type
 
 
 def send_cookies(driver, fp):
@@ -111,7 +112,7 @@ def send_cookies(driver, fp):
 
 
 def fill_advanced_search_settings_page(driver, search_key, region, search_period, items_on_page,
-                                       order_from_file):
+                                       order_from_file, employments_types: list):
     if check_if_there_one_day_passed_after_block(LAST_BLOCK_TIME):
         logger.critical('Не прошло одного дня с последней блокировки рассылки!\n'
                         'Вы уверены, что хотите продолжить?\n'
@@ -145,11 +146,17 @@ def fill_advanced_search_settings_page(driver, search_key, region, search_period
     a.items_on_page = items_on_page
     items_on_page = a.items_on_page
 
-    a.order = order_from_file
+    a.order = order_from_file087442
     sort_by = a.order
 
-    move_to_elem_by_xpath(driver, sort_by)
 
+    if employments_types:
+        move_to_elem_by_xpath(driver, f'//label[@data-qa="control-vacancysearch__employment-item control-vacancysearch__employment-item_{employments_types[0]}"]')
+        for employment in employments_types:
+            test = f'//label[@data-qa="control-vacancysearch__employment-item control-vacancysearch__employment-item_{employment}"]'
+            click(driver, test)
+
+    move_to_elem_by_xpath(driver, sort_by)
     click(driver, sort_by)
     click(driver, search_period)
     click(driver, items_on_page)
@@ -266,6 +273,11 @@ def process_vacancy_page(driver, link, vacancy_number, resume_name, fp_info_file
         dump_vacancies_with_extra_questions_in_file(link, VACANCIES_WITH_EXTRA_QUESTIONS_FILE)
     elif check_element_exist(driver, VacancyPage.vacancy_with_extra_questions):
         logger.info('Вакансия требует ответов на дополнительные вопросы')
+        dump_vacancies_with_extra_questions_in_file(link, VACANCIES_WITH_EXTRA_QUESTIONS_FILE)
+
+    elif check_element_exist(driver, VacancyPage.vacancy_with_direct_response):
+        logger.info('Вакансия с прямым откликом')
+        logger.debug('Откликнуться на эту вакансию Вы можете, заполнив анкету на сайте работодателя')
         dump_vacancies_with_extra_questions_in_file(link, VACANCIES_WITH_EXTRA_QUESTIONS_FILE)
 
     else:
