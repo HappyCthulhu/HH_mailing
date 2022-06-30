@@ -2,7 +2,6 @@ import json
 import os
 import time
 import tkinter
-from pathlib import Path
 from sys import platform
 from tkinter import *
 from tkinter import messagebox
@@ -17,7 +16,7 @@ from selenium.webdriver.support.wait import WebDriverWait
 from locators import SearchPage
 from logging_dir.logging import my_exception_hook, set_logger
 from main import fill_advanced_search_settings_page, unpack_info_file, unpack_dict, send_cookies, check_authorization, \
-    check_element_exist, send_responses_on_page, click, logging_final_results, check_driver_exist
+    check_element_exist, send_responses_on_page, click, logging_final_results
 
 
 # TODO: Решить трабл с кучей переменных передаваемых в функцию. Словарь передавать
@@ -27,12 +26,12 @@ from main import fill_advanced_search_settings_page, unpack_info_file, unpack_di
 # TODO: написать тесты к проге
 ## пущай прога запускает проект без json и  yaml-файлов
 ## пущай прога проверить переход на другую страницу после блокировки
-# TODO: когда натыкается на вторую страницу, ловит TimeoutException, 
+# TODO: когда натыкается на вторую страницу, ловит TimeoutException,
 # TODO: "Работа выполнена успешно" уведомлением сделать
 # TODO: че делать с хромдрайвером для винды и линукса?
 # TODO: логгирование в окошки уведомлений превратить
 # TODO: еще раз поглядеть, как выглядит структуризация функций в тестировании и назначение драйвера
-# TODO: растянуть поле ввода сопроводительного вширь 
+# TODO: растянуть поле ввода сопроводительного вширь
 # TODO: переделать дизайн, нормально прошарив grid и остальные две штуки
 # TODO: почему драйвер не присваивается в scope функции?
 # TODO: придумать, каким образом присвоить драйвер. Для этого нужно как минимум вывести его из скоупа функции. Для этого нужно научиться получать значения из input
@@ -75,11 +74,33 @@ class AddElement():
             radio.grid(sticky=W, column=0, row=self.elem_count)
             self.counting()
 
+    def create_checkbox(self, tuple, employments_type_from_file, font_family='Helvetica', font_size=14,
+                        font_thickness='normal'):
 
-def unpack_vacancies_with_extra_questions(fp):
-    with open(fp, 'r') as file:
-        file_info = yaml.load(file, Loader=yaml.FullLoader)
-        return file_info
+        for text, value in tuple:
+            if employments_type_from_file and value in employments_type_from_file:
+                variable = StringVar()
+                c1 = Checkbutton(frame, text=text, variable=variable, bg='#F3F5F4', highlightthickness=0,
+                                 justify='left', onvalue=value, offvalue=None, command=None)
+                c1.select()
+
+            else:
+                variable = StringVar()
+                c1 = Checkbutton(frame, text=text, variable=variable, bg='#F3F5F4', highlightthickness=0,
+                                 justify='left', onvalue=value, offvalue=None, command=None)
+                c1.deselect()
+
+            vars.append(variable)
+            c1.config(font=(font_family, font_size, font_thickness))
+            c1.grid(sticky=W, column=0, row=self.elem_count)
+            # c1.pack()
+            self.counting()
+
+
+# def unpack_vacancies_with_extra_questions(fp):
+#     with open(fp, 'r') as file:
+#         file_info = yaml.load(file, Loader=yaml.FullLoader)
+#         return file_info
 
 
 def create_label(text, row, *kwargs):
@@ -149,13 +170,12 @@ def btn_click():
         driver_path = 'chromedriver.exe'
     else:
         # if not check_driver_exist(driver_path):
-            # TODO: добавить в readme инструкцию по установке хромдрайвера
+        # TODO: добавить в readme инструкцию по установке хромдрайвера
 
-            messagebox.showerror(title='Хромдрайвера нет в папке', message=error_message)
-            raise FileNotFoundError
-        # messagebox.showerror(title='Система не определена', message='У вас винда или линукс?')
-        # sys.exit()
-
+        messagebox.showerror(title='Хромдрайвера нет в папке', message=error_message)
+        raise FileNotFoundError
+    # messagebox.showerror(title='Система не определена', message='У вас винда или линукс?')
+    # sys.exit()
 
     search_key_from_input = searchKeyInput.get()
     region_from_input = regionInput.get()
@@ -166,11 +186,18 @@ def btn_click():
     items_on_page_from_input = r_items_on_page.get()
     order_from_input = r_order.get()
 
+    employment_from_input = []
+    for variable in vars:
+        value = variable.get()
+        if value != '0':
+            employment_from_input.append(value)
+
     info_str = f'Ключевые слова: {str(search_key_from_input)}\n' \
                f'Название вашего резюме: {str(resume_name_from_input)}\n' \
                f'Регион: {str(region_from_input)}\n' \
                f'Сортировка: {str(search_period_from_input)}\n' \
                f'Выводить: {str(order_from_input)}\n' \
+               f'Тип занятости: {", ".join(employment_from_input)}\n' \
                f'Показывать на странице: {str(items_on_page_from_input)}\n'
     messagebox.showinfo(title='Проверьте информацию!', message=info_str)
     root.update()
@@ -183,11 +210,12 @@ def btn_click():
         'items_on_page': items_on_page_from_input,
         'order': order_from_input,
         'covering_letter': covering_letter_from_input,
+        'employment_from_input': employment_from_input
     }
 
     dump_in_my_file(input_dict, INFO_FILE)
 
-    driver = webdriver.Chrome(Path(driver_path).resolve())
+    driver = webdriver.Chrome()
 
     driver.get(AUTHORIZATION_PAGE_LINK)
 
@@ -210,7 +238,8 @@ def btn_click():
         logger.info('Авторизация прошла успешно')
     fill_advanced_search_settings_page(driver, search_key_from_input, region_from_input, search_period_from_input,
                                        items_on_page_from_input,
-                                       order_from_input)  # messagebox.showerror(title='', message='Error always')
+                                       order_from_input,
+                                       employment_from_input)  # messagebox.showerror(title='', message='Error always')
 
     number_of_responses = 0
     number_of_pages = 1
@@ -250,7 +279,7 @@ AUTHORIZATION_PAGE_LINK = 'https://spb.hh.ru/account/login?backurl=%2F'
 
 if os.path.isfile(INFO_FILE) and os.path.getsize(INFO_FILE):
     info_file_dict = unpack_info_file(INFO_FILE)
-    search_key_from_file, resume_name_from_file, region_from_file, search_period_from_file, items_on_page_from_file, order_from_file, covering_letter_from_file = unpack_dict(
+    search_key_from_file, resume_name_from_file, region_from_file, search_period_from_file, items_on_page_from_file, order_from_file, covering_letter_from_file, employment_type_from_file = unpack_dict(
         info_file_dict)
 
 else:
@@ -341,9 +370,23 @@ r_items_on_page = IntVar()
 
 a.create_radio(r_items_on_page, ITEMS_ON_PAGE, items_on_page_from_file)
 
+a.create_default_label('Тип занятости')
+
+EMPLOYMENT_TYPE = [
+    ('Полная занятость', 'full'),
+    ('Частичная занятость', 'part'),
+    ('Проектная работа/разовое задание', 'project'),
+    ('Волонтерство', 'volunteer'),
+    ('Стажировка', 'probation'),
+]
+
+# r_employment = [StringVar() for var in range(len(EMPLOYMENT_TYPE))]
+vars = []
+a.create_checkbox(EMPLOYMENT_TYPE, employment_type_from_file, vars)
+
 btn = Button(frame, text='Начать рассылку', bg='#F7C87E', command=btn_click, justify=LEFT,
              border=0)
 btn.config(height=2, width=15)
-btn.grid(sticky=W, column=0, row=24, pady=28)
+btn.grid(sticky=W, column=0, row=a.elem_count, pady=28)
 
 root.mainloop()
